@@ -1,19 +1,27 @@
 import { create } from "zustand";
 
+const API = import.meta.env.VITE_API_URL; // 🔥 Base URL from Vercel env
+
 export const useProductStore = create((set) => ({
   products: [],
 
   setProducts: (products) => set({ products }),
 
-  // CREATE PRODUCT (with user ownership + cookies)
+  // CREATE PRODUCT
   createProduct: async (newProduct) => {
-    if (!newProduct.name || !newProduct.image || !newProduct.price || !newProduct.stock || !newProduct.category) {
+    if (
+      !newProduct.name ||
+      !newProduct.image ||
+      !newProduct.price ||
+      !newProduct.stock ||
+      !newProduct.category
+    ) {
       return { success: false, message: "Please fill in all fields." };
     }
 
-    const res = await fetch("/api/products", {
+    const res = await fetch(`${API}/api/products`, {
       method: "POST",
-      credentials: "include", // 🔥 sends the JWT cookie
+      credentials: "include", // 🔥 sends JWT cookie
       headers: {
         "Content-Type": "application/json",
       },
@@ -29,24 +37,22 @@ export const useProductStore = create((set) => ({
     return { success: true, message: "Product created successfully" };
   },
 
-  // FETCH USER-OWNED PRODUCTS ONLY
+  // FETCH PRODUCTS
   fetchProducts: async () => {
-    const res = await fetch("/api/products", {
+    const res = await fetch(`${API}/api/products`, {
       method: "GET",
-      credentials: "include", // 🔥 important
+      credentials: "include",
     });
 
     const data = await res.json();
-    if (data.success) {
-      set({ products: data.data });
-    }
+    if (data.success) set({ products: data.data });
   },
 
-  // DELETE product (must be owned by logged-in user)
+  // DELETE PRODUCT
   deleteProduct: async (pid) => {
-    const res = await fetch(`/api/products/${pid}`, {
+    const res = await fetch(`${API}/api/products/${pid}`, {
       method: "DELETE",
-      credentials: "include", // 🔥
+      credentials: "include",
     });
 
     const data = await res.json();
@@ -59,11 +65,11 @@ export const useProductStore = create((set) => ({
     return { success: true, message: data.message };
   },
 
-  // UPDATE product
+  // UPDATE PRODUCT
   updateProduct: async (pid, updatedProduct) => {
-    const res = await fetch(`/api/products/${pid}`, {
+    const res = await fetch(`${API}/api/products/${pid}`, {
       method: "PUT",
-      credentials: "include", // 🔥
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -82,11 +88,11 @@ export const useProductStore = create((set) => ({
     return { success: true, message: data.message };
   },
 
-  // UPDATE stock only
+  // UPDATE STOCK ONLY
   updateProductStock: async (productId, newStock) => {
-    const res = await fetch(`/api/products/${productId}`, {
+    const res = await fetch(`${API}/api/products/${productId}`, {
       method: "PUT",
-      credentials: "include", // 🔥
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
