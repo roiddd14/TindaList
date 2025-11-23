@@ -3,6 +3,6 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://YOUR-BACKEND.onrender.com/api/$1" }
+    { "source": "/api/(.*)", "destination": "https://tindalist.onrender.com" }
   ]
 }
