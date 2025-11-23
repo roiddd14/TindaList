@@ -9,7 +9,8 @@ const COOKIE_NAME = "token";
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    if (!name || !email || !password) return res.status(400).json({ message: "All fields required" });
+    if (!name || !email || !password)
+      return res.status(400).json({ message: "All fields required" });
 
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ message: "Email already registered" });
@@ -21,8 +22,17 @@ export const register = async (req, res) => {
     const payload = { id: user._id, email: user.email };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
-    res.cookie(COOKIE_NAME, token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" });
-    res.status(201).json({ message: "Registered", user: { id: user._id, name: user.name, email: user.email } });
+    // 🔥 FIXED FOR VERCEL ↔ RENDER CROSS-SITE COOKIE
+    res.cookie(COOKIE_NAME, token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true
+    });
+
+    res.status(201).json({
+      message: "Registered",
+      user: { id: user._id, name: user.name, email: user.email }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -31,15 +41,16 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { identifier, password } = req.body; // identifier = email OR username
+    const { identifier, password } = req.body;
 
     if (!identifier || !password) {
-      return res.status(400).json({ message: "Email/Username and password required" });
+      return res
+        .status(400)
+        .json({ message: "Email/Username and password required" });
     }
 
-    // Find user by email OR name
     const user = await User.findOne({
-      $or: [{ email: identifier }, { name: identifier }],
+      $or: [{ email: identifier }, { name: identifier }]
     });
 
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
@@ -50,10 +61,11 @@ export const login = async (req, res) => {
     const payload = { id: user._id, email: user.email };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
+    // 🔥 FIXED FOR VERCEL ↔ RENDER CROSS-SITE COOKIE
     res.cookie(COOKIE_NAME, token, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production"
+      sameSite: "none",
+      secure: true
     });
 
     res.json({
@@ -66,9 +78,12 @@ export const login = async (req, res) => {
   }
 };
 
-
 export const logout = async (req, res) => {
-  res.clearCookie(COOKIE_NAME);
+  res.clearCookie(COOKIE_NAME, {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true
+  });
   res.json({ message: "Logged out" });
 };
 
@@ -78,20 +93,15 @@ export const me = async (req, res) => {
   res.json({ user });
 };
 
-/**
- * Update user profile (name, optional email)
- * PUT /api/auth/update
- * Protected
- */
 export const updateUser = async (req, res) => {
   try {
     const { name, email } = req.body;
-    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    if (!req.user)
+      return res.status(401).json({ message: "Not authenticated" });
 
     const updates = {};
     if (name) updates.name = name;
     if (email) {
-      // if email changed, ensure uniqueness
       const existing = await User.findOne({ email });
       if (existing && existing._id.toString() !== req.user.id) {
         return res.status(409).json({ message: "Email already in use" });
@@ -99,7 +109,10 @@ export const updateUser = async (req, res) => {
       updates.email = email;
     }
 
-    const updated = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select("-password");
+    const updated = await User.findByIdAndUpdate(req.user.id, updates, {
+      new: true
+    }).select("-password");
+
     res.json({ success: true, user: updated });
   } catch (err) {
     console.error("updateUser error:", err);
@@ -107,23 +120,22 @@ export const updateUser = async (req, res) => {
   }
 };
 
-/**
- * Change password
- * PUT /api/auth/change-password
- * Body: { currentPassword, newPassword }
- * Protected
- */
 export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
-    if (!currentPassword || !newPassword) return res.status(400).json({ message: "Both current and new password are required" });
+    if (!req.user)
+      return res.status(401).json({ message: "Not authenticated" });
+    if (!currentPassword || !newPassword)
+      return res
+        .status(400)
+        .json({ message: "Both current and new password are required" });
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const match = await bcrypt.compare(currentPassword, user.password);
-    if (!match) return res.status(401).json({ message: "Current password incorrect" });
+    if (!match)
+      return res.status(401).json({ message: "Current password incorrect" });
 
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(newPassword, salt);
