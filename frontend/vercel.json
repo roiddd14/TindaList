@@ -3,6 +3,9 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://tindalist.onrender.com" }
+    {
+      "source": "/api/(.*)",
+      "destination": "https://tindalist.onrender.com/api/$1"
+    }
   ]
 }
