@@ -20,8 +20,6 @@ import { useState } from "react";
 import { useProductStore } from "../store/product";
 import { Link, useNavigate } from "react-router-dom";
 
-import ImageInput from "../components/ImageInput";
-
 const CreatePage = () => {
   const [newProduct, setNewProduct] = useState({
     name: "",
