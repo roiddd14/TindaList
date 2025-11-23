@@ -12,33 +12,22 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS FIX — allow localhost, the main Vercel URL, & ALL Vercel preview URLs
+// --- FIXED CORS CONFIG (for Vercel -> Render with cookies) ---
 app.use(
   cors({
-    origin: function (origin, callback) {
-      const allowed = [
-        "http://localhost:5173",
-        process.env.FRONTEND_URL,  // your main Vercel project domain
-      ];
-
-      if (!origin) {
-        return callback(null, true); // allow server-to-server or Postman
-      }
-
-      // allow all preview URLs: *.vercel.app
-      if (origin.endsWith(".vercel.app")) {
-        return callback(null, true);
-      }
-
-      if (allowed.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("CORS blocked for origin: " + origin), false);
-    },
+    origin: [
+      "http://localhost:5173",
+      "https://tinda-list.vercel.app",
+      "https://tinda-list-5fzgcpgvn-roiddds-projects.vercel.app"
+    ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
+
+// Required for preflight requests
+app.options("*", cors());
 
 // Middleware
 app.use(express.json());
