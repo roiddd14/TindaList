@@ -12,42 +12,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// --- FIXED CORS CONFIG (for Vercel -> Render with cookies) ---
+// --- FIXED CORS (always runs first) ---
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowed = [
-        "http://localhost:5173",
-        process.env.FRONTEND_URL,    // your main Vercel prod URL
-      ];
-
-      // Allow backend tools (no origin)
-      if (!origin) return callback(null, true);
-
-      // Allow ALL Vercel preview deployments
-      if (origin.includes("vercel.app")) {
-        return callback(null, true);
-      }
-
-      // Allow explicitly approved origins
-      if (allowed.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("CORS blocked: " + origin), false);
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: [
+      "http://localhost:5173",
+      process.env.FRONTEND_URL,         // your main vercel domain
+      /\.vercel\.app$/,                 // regex to allow ALL preview URLs
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   })
 );
 
-// allow preflight
-app.options("*", cors());
-
-
-// Required for preflight requests
-app.options("*", cors());
+app.options("*", cors()); // important for preflight OPTIONS
 
 // Middleware
 app.use(express.json());
@@ -57,8 +38,12 @@ app.use(cookieParser());
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
+
 // Start server
 app.listen(PORT, () => {
   connectDB();
-  console.log("Server started at http://localhost:" + PORT);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
