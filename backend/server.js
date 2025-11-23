@@ -12,23 +12,25 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Allowed origins (frontend URLs)
-const allowedOrigins = [
-  process.env.FRONTEND_URL,   // Vercel domain
-  "http://localhost:5173"     // Local dev
-];
-
-app.use(express.json());
-app.use(cookieParser());
-
-// CORS FIX — supports multiple origins
+// CORS FIX — allow localhost, the main Vercel URL, & ALL Vercel preview URLs
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (e.g., Postman)
-      if (!origin) return callback(null, true);
+      const allowed = [
+        "http://localhost:5173",
+        process.env.FRONTEND_URL,  // your main Vercel project domain
+      ];
 
-      if (allowedOrigins.includes(origin)) {
+      if (!origin) {
+        return callback(null, true); // allow server-to-server or Postman
+      }
+
+      // allow all preview URLs: *.vercel.app
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      if (allowed.includes(origin)) {
         return callback(null, true);
       }
 
@@ -37,6 +39,10 @@ app.use(
     credentials: true,
   })
 );
+
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use("/api/products", productRoutes);
