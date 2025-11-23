@@ -1,19 +1,62 @@
-// middleware/auth.middleware.js
-import jwt from "jsonwebtoken";
+import express from "express";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import { connectDB } from "./config/db.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "replace_this_with_env_secret";
-const COOKIE_NAME = "token";
+import productRoutes from "./routes/product.route.js";
+import authRoutes from "./routes/auth.route.js";
 
-export const requireAuth = (req, res, next) => {
-  try {
-    const token = req.cookies && req.cookies[COOKIE_NAME];
-    if (!token) return res.status(401).json({ message: "Not authenticated" });
+dotenv.config();
 
-    const payload = jwt.verify(token, JWT_SECRET);
-    // payload should contain id and email per login/register
-    req.user = payload;
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" });
-  }
-};
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL
+];
+
+// --- FIXED CORS ---
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // mobile apps, server-to-server
+
+      // allow all Vercel preview URLs
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS: " + origin));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.options("*", cors());
+
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
+
+// Routes
+app.use("/api/products", productRoutes);
+app.use("/api/auth", authRoutes);
+
+// Root for test
+app.get("/", (req, res) => {
+  res.send("Backend is running with CORS enabled");
+});
+
+// Start
+app.listen(PORT, () => {
+  connectDB();
+  console.log("Server running on port", PORT);
+});
