@@ -6,7 +6,7 @@ import { requireAuth } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/", requireAuth, getProducts);
+router.get("/", getProducts);
 router.post("/", requireAuth, createProduct);
 router.put("/:id", requireAuth, updateProduct);
 router.delete("/:id", requireAuth, deleteProduct);
