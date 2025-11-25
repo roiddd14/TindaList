@@ -6,6 +6,14 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET || "replace_this_with_env_secret";
 const COOKIE_NAME = "token";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: isProduction ? "none" : "lax",
+  secure: isProduction
+};
+
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -22,14 +30,10 @@ export const register = async (req, res) => {
     const payload = { id: user._id, email: user.email };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
-    // 🔥 FIXED FOR VERCEL ↔ RENDER CROSS-SITE COOKIE
-    res.cookie(COOKIE_NAME, token, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true
-    });
+    res.cookie(COOKIE_NAME, token, cookieOptions);
 
     res.status(201).json({
+      success: true,
       message: "Registered",
       token,
       user: { id: user._id, name: user.name, email: user.email }
@@ -45,9 +49,9 @@ export const login = async (req, res) => {
     const { identifier, password } = req.body;
 
     if (!identifier || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email/Username and password required" });
+      return res.status(400).json({
+        message: "Email/Username and password required"
+      });
     }
 
     const user = await User.findOne({
@@ -62,14 +66,10 @@ export const login = async (req, res) => {
     const payload = { id: user._id, email: user.email };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
-    // 🔥 FIXED FOR VERCEL ↔ RENDER CROSS-SITE COOKIE
-    res.cookie(COOKIE_NAME, token, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true
-    });
+    res.cookie(COOKIE_NAME, token, cookieOptions);
 
     res.json({
+      success: true,
       message: "Logged in",
       token,
       user: { id: user._id, name: user.name, email: user.email }
@@ -81,18 +81,15 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-  res.clearCookie(COOKIE_NAME, {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true
-  });
-  res.json({ message: "Logged out" });
+  res.clearCookie(COOKIE_NAME, cookieOptions);
+  res.json({ success: true, message: "Logged out" });
 };
 
 export const me = async (req, res) => {
   if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+
   const user = await User.findById(req.user.id).select("-password");
-  res.json({ user });
+  res.json({ success: true, user });
 };
 
 export const updateUser = async (req, res) => {
@@ -103,6 +100,7 @@ export const updateUser = async (req, res) => {
 
     const updates = {};
     if (name) updates.name = name;
+
     if (email) {
       const existing = await User.findOne({ email });
       if (existing && existing._id.toString() !== req.user.id) {
@@ -127,10 +125,11 @@ export const changePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
     if (!req.user)
       return res.status(401).json({ message: "Not authenticated" });
+
     if (!currentPassword || !newPassword)
-      return res
-        .status(400)
-        .json({ message: "Both current and new password are required" });
+      return res.status(400).json({
+        message: "Both current and new password are required"
+      });
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });

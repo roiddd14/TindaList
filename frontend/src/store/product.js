@@ -26,6 +26,7 @@ export const useProductStore = create((set) => ({
 
     const res = await fetch(`${API}/api/products`, {
       method: "POST",
+      credentials: "include", // ✅ REQUIRED FOR AUTH
       headers: {
         "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : "",
@@ -42,19 +43,23 @@ export const useProductStore = create((set) => ({
     return { success: true, message: "Product created successfully" };
   },
 
-  // FETCH PRODUCTS
+  // FETCH PRODUCTS (USER'S OWN PRODUCTS)
   fetchProducts: async () => {
     const token = getToken();
 
     const res = await fetch(`${API}/api/products`, {
       method: "GET",
+      credentials: "include", // ✅ REQUIRED FIX
       headers: {
+        "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : "",
       },
     });
 
     const data = await res.json();
     if (data.success) set({ products: data.data });
+
+    return data;
   },
 
   // DELETE PRODUCT
@@ -63,7 +68,9 @@ export const useProductStore = create((set) => ({
 
     const res = await fetch(`${API}/api/products/${pid}`, {
       method: "DELETE",
+      credentials: "include", // ✅ REQUIRED
       headers: {
+        "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : "",
       },
     });
@@ -84,6 +91,7 @@ export const useProductStore = create((set) => ({
 
     const res = await fetch(`${API}/api/products/${pid}`, {
       method: "PUT",
+      credentials: "include", // ✅ REQUIRED
       headers: {
         "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : "",
@@ -109,6 +117,7 @@ export const useProductStore = create((set) => ({
 
     const res = await fetch(`${API}/api/products/${productId}`, {
       method: "PUT",
+      credentials: "include", // ✅ REQUIRED
       headers: {
         "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : "",

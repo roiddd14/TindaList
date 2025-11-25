@@ -12,36 +12,32 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ APPLE-SAFE CORS FIX (no regex in array)
+// ✅ APPLE-SAFE CORS CONFIG
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.FRONTEND_URL
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow non-browser tools like Postman or server requests
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
 
-      // Allow Vercel preview URLs safely
-      if (origin.includes(".vercel.app")) return callback(null, true);
+    if (origin.includes(".vercel.app")) return callback(null, true);
 
-      // Allow defined origins
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-      return callback(new Error("Not allowed by CORS"));
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-    optionsSuccessStatus: 204
-  })
-);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204
+};
 
-app.options("*", cors());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // ✅ use SAME config, not default
 
 // Middleware
 app.use(express.json());

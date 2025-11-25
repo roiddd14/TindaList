@@ -7,24 +7,33 @@ export const requireAuth = (req, res, next) => {
   try {
     let token = null;
 
-    // ✅ Check Authorization header first
     const authHeader = req.headers.authorization;
+
     if (authHeader && authHeader.startsWith("Bearer ")) {
       token = authHeader.split(" ")[1];
     } 
-    // fallback to cookie (for local/dev)
     else if (req.cookies && req.cookies[COOKIE_NAME]) {
       token = req.cookies[COOKIE_NAME];
     }
 
     if (!token) {
-      return res.status(401).json({ message: "Not authenticated" });
+      return res.status(401).json({ success: false, message: "Not authenticated" });
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+
+    // ✅ NORMALIZE USER OBJECT (important fix)
+    req.user = {
+      id: decoded.id || decoded._id || decoded.userId
+    };
+
+    if (!req.user.id) {
+      return res.status(401).json({ success: false, message: "Invalid token payload" });
+    }
+
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Invalid or expired token" });
+    console.error("AUTH ERROR:", error.message);
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
