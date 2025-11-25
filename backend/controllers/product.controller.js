@@ -3,11 +3,23 @@ import mongoose from "mongoose";
 
 export const getProducts = async (req, res) => {
     try {
-        const products = await Product.find({ user: req.user.id });
+        let filter = {};
+
+        // ✅ Prevent crash if user is not logged in
+        if (req.user && req.user.id) {
+            filter.user = req.user.id;
+        }
+
+        const products = await Product.find(filter);
         res.status(200).json({ success: true, data: products });
+
     } catch (error) {
-        console.log("Error fetching products:", error.message);
-        res.status(500).json({ success: false, message: "Server Error" });
+        console.error("Error fetching products:", error.message);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to fetch products",
+            error: error.message
+        });
     }
 };
 
@@ -15,7 +27,6 @@ export const getProducts = async (req, res) => {
 export const createProduct = async (req, res) => {
     const productData = req.body;
 
-    // Validate required fields
     if (!productData.name || !productData.price || !productData.image || !productData.stock || !productData.category) {
         return res.status(400).json({ success: false, message: "Please provide all fields" });
     }
@@ -23,7 +34,7 @@ export const createProduct = async (req, res) => {
     try {
         const newProduct = await Product.create({
             ...productData,
-            user: req.user.id, // 🔥 assign owner
+            user: req.user.id,
         });
 
         res.status(201).json({ success: true, data: newProduct });
@@ -32,7 +43,6 @@ export const createProduct = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
-
 
 
 export const updateProduct = async (req, res) => {
@@ -49,7 +59,6 @@ export const updateProduct = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        // 🔥 Check ownership
         if (product.user.toString() !== req.user.id) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
@@ -78,7 +87,6 @@ export const deleteProduct = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        // 🔥 Check ownership
         if (product.user.toString() !== req.user.id) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
