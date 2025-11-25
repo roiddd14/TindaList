@@ -33,10 +33,12 @@ const HomePage = () => {
   }, [fetchProducts]);
 
   useEffect(() => {
-    if (!loading && user) {
-      fetchProducts();
-    }
-  }, [loading, user, fetchProducts]);
+  const token = localStorage.getItem("token");
+
+  if (!loading && token) {
+    fetchProducts();
+  }
+}, [loading, user, fetchProducts]);
 
   const filteredProducts = products.filter((product) => {
     const matchesSearchTerm = product.name
