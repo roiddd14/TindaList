@@ -23,6 +23,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false); // ⬅ NEW
 
   const toast = useToast();
   const nav = useNavigate();
@@ -34,6 +35,7 @@ export default function Register() {
   const submit = async (e) => {
     e.preventDefault();
     setErr("");
+    setLoading(true); // ⬅ NEW
 
     try {
       await auth.register(name, email, password);
@@ -56,6 +58,8 @@ export default function Register() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setLoading(false); // ⬅ NEW
     }
   };
 
@@ -145,6 +149,7 @@ export default function Register() {
                 colorScheme="blue"
                 borderRadius="full"
                 type="submit"
+                isLoading={loading}  // ⬅ NEW
               >
                 Register
               </Button>

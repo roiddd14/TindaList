@@ -21,6 +21,8 @@ export default function Login() {
   const [identifier, setIdentifier] = useState(""); // email OR username
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);  // ⬅ NEW
+
   const auth = useAuth();
   const nav = useNavigate();
 
@@ -30,12 +32,15 @@ export default function Login() {
   const submit = async (e) => {
     e.preventDefault();
     setErr("");
+    setLoading(true);   // ⬅ NEW
 
     try {
-      await auth.login(identifier, password); 
+      await auth.login(identifier, password);
       nav("/");
     } catch (error) {
       setErr(error.message || "Login failed");
+    } finally {
+      setLoading(false);  // ⬅ NEW
     }
   };
 
@@ -123,6 +128,7 @@ export default function Login() {
                 size="lg"
                 borderRadius="full"
                 type="submit"
+                isLoading={loading}     // ⬅ NEW
               >
                 Login
               </Button>
@@ -145,5 +151,4 @@ export default function Login() {
       </Box>
     </Container>
   );
-
 }
