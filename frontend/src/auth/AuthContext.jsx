@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch logged in user using TOKEN HEADER
+  // ✅ FETCH CURRENT USER
   const fetchMe = async () => {
     try {
       const token = getToken();
@@ -22,7 +22,10 @@ export const AuthProvider = ({ children }) => {
       }
 
       const res = await fetch(`${API}/api/auth/me`, {
+        method: "GET",
+        credentials: "include", // ✅ IMPORTANT
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
@@ -34,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         localStorage.removeItem("token");
       }
-    } catch (err) {
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -49,6 +52,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const res = await fetch(`${API}/api/auth/login`, {
       method: "POST",
+      credentials: "include", // ✅ CRITICAL FIX
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ identifier: email, password }),
     });
@@ -57,8 +61,11 @@ export const AuthProvider = ({ children }) => {
 
     if (!res.ok) throw new Error(data.message || "Login failed");
 
+    if (!data.token) throw new Error("Token not received");
+
+    localStorage.setItem("token", data.token);
     setUser(data.user);
-    localStorage.setItem("token", data.token); // ✅ SAVE TOKEN
+
     return data;
   };
 
@@ -66,6 +73,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     const res = await fetch(`${API}/api/auth/register`, {
       method: "POST",
+      credentials: "include", // ✅ CRITICAL FIX
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     });
@@ -74,13 +82,21 @@ export const AuthProvider = ({ children }) => {
 
     if (!res.ok) throw new Error(data.message || "Register failed");
 
+    if (!data.token) throw new Error("Token not received");
+
+    localStorage.setItem("token", data.token);
     setUser(data.user);
-    localStorage.setItem("token", data.token); // ✅ SAVE TOKEN
+
     return data;
   };
 
   // ✅ LOGOUT
   const logout = async () => {
+    await fetch(`${API}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
     localStorage.removeItem("token");
     setUser(null);
   };
@@ -91,6 +107,7 @@ export const AuthProvider = ({ children }) => {
 
     const res = await fetch(`${API}/api/auth/update`, {
       method: "PUT",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -111,6 +128,7 @@ export const AuthProvider = ({ children }) => {
 
     const res = await fetch(`${API}/api/auth/change-password`, {
       method: "PUT",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
