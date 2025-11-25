@@ -1,6 +1,9 @@
 import { create } from "zustand";
 
-const API = import.meta.env.VITE_API_URL; // 🔥 Base URL from Vercel env
+const API = import.meta.env.VITE_API_URL;
+
+// helper to get token
+const getToken = () => localStorage.getItem("token");
 
 export const useProductStore = create((set) => ({
   products: [],
@@ -19,11 +22,13 @@ export const useProductStore = create((set) => ({
       return { success: false, message: "Please fill in all fields." };
     }
 
+    const token = getToken();
+
     const res = await fetch(`${API}/api/products`, {
       method: "POST",
-      credentials: "include", // 🔥 sends JWT cookie
       headers: {
         "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : "",
       },
       body: JSON.stringify(newProduct),
     });
@@ -39,9 +44,13 @@ export const useProductStore = create((set) => ({
 
   // FETCH PRODUCTS
   fetchProducts: async () => {
+    const token = getToken();
+
     const res = await fetch(`${API}/api/products`, {
       method: "GET",
-      credentials: "include",
+      headers: {
+        Authorization: token ? `Bearer ${token}` : "",
+      },
     });
 
     const data = await res.json();
@@ -50,9 +59,13 @@ export const useProductStore = create((set) => ({
 
   // DELETE PRODUCT
   deleteProduct: async (pid) => {
+    const token = getToken();
+
     const res = await fetch(`${API}/api/products/${pid}`, {
       method: "DELETE",
-      credentials: "include",
+      headers: {
+        Authorization: token ? `Bearer ${token}` : "",
+      },
     });
 
     const data = await res.json();
@@ -67,11 +80,13 @@ export const useProductStore = create((set) => ({
 
   // UPDATE PRODUCT
   updateProduct: async (pid, updatedProduct) => {
+    const token = getToken();
+
     const res = await fetch(`${API}/api/products/${pid}`, {
       method: "PUT",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : "",
       },
       body: JSON.stringify(updatedProduct),
     });
@@ -90,11 +105,13 @@ export const useProductStore = create((set) => ({
 
   // UPDATE STOCK ONLY
   updateProductStock: async (productId, newStock) => {
+    const token = getToken();
+
     const res = await fetch(`${API}/api/products/${productId}`, {
       method: "PUT",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : "",
       },
       body: JSON.stringify({ stock: newStock }),
     });

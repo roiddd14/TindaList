@@ -31,6 +31,7 @@ export const register = async (req, res) => {
 
     res.status(201).json({
       message: "Registered",
+      token,
       user: { id: user._id, name: user.name, email: user.email }
     });
   } catch (err) {
@@ -70,6 +71,7 @@ export const login = async (req, res) => {
 
     res.json({
       message: "Logged in",
+      token,
       user: { id: user._id, name: user.name, email: user.email }
     });
   } catch (err) {

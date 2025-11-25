@@ -1,19 +1,30 @@
-// middleware/auth.middleware.js
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "replace_this_with_env_secret";
 const COOKIE_NAME = "token";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export const requireAuth = (req, res, next) => {
   try {
-    const token = req.cookies && req.cookies[COOKIE_NAME];
-    if (!token) return res.status(401).json({ message: "Not authenticated" });
+    let token = null;
 
-    const payload = jwt.verify(token, JWT_SECRET);
-    // payload should contain id and email per login/register
-    req.user = payload;
+    // ✅ Check Authorization header first
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    } 
+    // fallback to cookie (for local/dev)
+    else if (req.cookies && req.cookies[COOKIE_NAME]) {
+      token = req.cookies[COOKIE_NAME];
+    }
+
+    if (!token) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
     next();
-  } catch (err) {
+  } catch (error) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
