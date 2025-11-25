@@ -15,6 +15,7 @@ import { useProductStore } from "../store/product";
 import ProductCard from "../components/ProductCard";
 import { SearchIcon } from "@chakra-ui/icons";
 import { useAuth } from "../auth/AuthContext";
+import Footer from "../components/Footer";
 
 const HomePage = () => {
   const { fetchProducts, products } = useProductStore();
@@ -88,11 +89,11 @@ const HomePage = () => {
       <VStack spacing={10} align="stretch">
         {/* HEADER */}
         <Text
-          fontSize={{ base: "2xl", md: "4xl", lg: "5xl" }}
-          fontWeight="extrabold"
+          fontSize="3xl"
+          fontWeight="bold"
+          textAlign="center"
           bgGradient="linear(to-r, teal.400, blue.500, purple.600)"
           bgClip="text"
-          textAlign="center"
         >
           Product Lists
         </Text>
@@ -215,6 +216,11 @@ const HomePage = () => {
           ))}
         </Flex>
       </VStack>
+      <VStack spacing={8}>
+              {/* page content here */}
+            </VStack>
+      
+            <Footer />
     </Container>
   );
 };

@@ -16,6 +16,8 @@ import {
 
 import { useAuth } from "../auth/AuthContext";
 import PasswordInput from "../components/PasswordInput";
+import Footer from "../components/Footer";
+
 
 const ProfilePage = () => {
   const { user, updateProfile, changePassword } = useAuth();
@@ -210,6 +212,11 @@ const ProfilePage = () => {
           </Box>
         </VStack>
       </Box>
+      <VStack spacing={8}>
+                    {/* page content here */}
+                  </VStack>
+            
+                  <Footer />
     </Container>
   );
 };
