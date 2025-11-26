@@ -31,8 +31,10 @@ import {
 import { IoMoon } from "react-icons/io5";
 import { LuSun } from "react-icons/lu";
 
-
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../auth/AuthContext";
+
+const MotionBox = motion(Box);
 
 const Sidebar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -42,20 +44,26 @@ const Sidebar = () => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [showSidebar, setShowSidebar] = useState(false); // <-- TOGGLE STATE
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Hide sidebar completely on auth pages
   const hideRoutes = ["/login", "/register"];
   if (hideRoutes.includes(location.pathname)) return null;
 
   const confirmLogout = async () => {
-    await logout();
-    navigate("/login");
+    try {
+      setLoading(true);
+      await logout();
+      navigate("/login");
+    } finally {
+      setLoading(false);
+      onClose();
+      setShowSidebar(false);
+    }
   };
 
   return (
     <>
-      {/* FLOATING TOGGLE BUTTON */}
       {!showSidebar && (
         <IconButton
           icon={<AiOutlineMenu size={24} />}
@@ -70,106 +78,110 @@ const Sidebar = () => {
         />
       )}
 
-      {/* SIDEBAR */}
-      <Box
-        position="fixed"
-        left={showSidebar ? "0" : "-80px"} // slide in/out
-        top="0"
-        h="100vh"
-        w="70px"
-        bg={colorMode === "light" ? "gray.100" : "gray.900"}
-        p={4}
-        boxShadow="xl"
-        display="flex"
-        flexDirection="column"
-        justifyContent="space-between"
-        transition="left 0.3s ease"
-        zIndex="200"
-      >
-        {/* CLOSE BUTTON */}
-        <IconButton
-          icon={<AiOutlineClose size={20} />}
-          aria-label="Close Sidebar"
-          variant="ghost"
-          mb={4}
-          onClick={() => setShowSidebar(false)}
-        />
-
-        <VStack spacing={6}>
-          <Tooltip label="Home" placement="right" hasArrow>
+      <AnimatePresence>
+        {showSidebar && (
+          <MotionBox
+            key="sidebar"
+            position="fixed"
+            left="0"
+            top="0"
+            h="100vh"
+            w="80px"
+            bg={colorMode === "light" ? "gray.300" : "gray.800"}
+            p={4}
+            boxShadow="xl"
+            display="flex"
+            flexDirection="column"
+            justifyContent="space-between"
+            zIndex="200"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.15, ease: "easeInOut" }}
+          >
             <IconButton
-              as={Link}
-              to="/"
-              aria-label="Home"
-              icon={<AiOutlineHome size={22} />}
+              icon={<AiOutlineClose size={20} />}
+              aria-label="Close Sidebar"
               variant="ghost"
-              _hover={{ bg: "gray.700" }}
+              mb={4}
+              onClick={() => setShowSidebar(false)}
             />
-          </Tooltip>
 
-          {user && (
-            <>
-              <Tooltip label="Add Item" placement="right" hasArrow>
+            <VStack spacing={6}>
+              <Tooltip label="Home" placement="right" hasArrow>
                 <IconButton
                   as={Link}
-                  to="/create"
-                  aria-label="Add Item"
-                  icon={<AiOutlinePlusSquare size={22} />}
+                  to="/"
+                  aria-label="Home"
+                  icon={<AiOutlineHome size={22} />}
                   variant="ghost"
-                  _hover={{ bg: "gray.700" }}
                 />
               </Tooltip>
 
-              <Tooltip label="Calculate Price" placement="right" hasArrow>
-                <IconButton
-                  as={Link}
-                  to="/calculate"
-                  aria-label="Calculate"
-                  icon={<AiOutlineCalculator size={22} />}
-                  variant="ghost"
-                  _hover={{ bg: "gray.700" }}
-                />
-              </Tooltip>
+              {user && (
+                <>
+                  <Tooltip label="Add Item" placement="right" hasArrow>
+                    <IconButton
+                      as={Link}
+                      to="/create"
+                      aria-label="Add Item"
+                      icon={<AiOutlinePlusSquare size={22} />}
+                      variant="ghost"
+                    />
+                  </Tooltip>
 
-              <Tooltip label="Profile" placement="right" hasArrow>
-                <IconButton
-                  as={Link}
-                  to="/profile"
-                  aria-label="Profile"
-                  icon={<AiOutlineUser size={22} />}
-                  variant="ghost"
-                  _hover={{ bg: "gray.700" }}
-                />
-              </Tooltip>
+                  <Tooltip label="Calculate Price" placement="right" hasArrow>
+                    <IconButton
+                      as={Link}
+                      to="/calculate"
+                      aria-label="Calculate"
+                      icon={<AiOutlineCalculator size={22} />}
+                      variant="ghost"
+                    />
+                  </Tooltip>
 
+                  <Tooltip label="Profile" placement="right" hasArrow>
+                    <IconButton
+                      as={Link}
+                      to="/profile"
+                      aria-label="Profile"
+                      icon={<AiOutlineUser size={22} />}
+                      variant="ghost"
+                    />
+                  </Tooltip>
 
-              <Tooltip label="Logout" placement="right" hasArrow>
-                <IconButton
-                  aria-label="Logout"
-                  icon={<AiOutlineLogout size={22} />}
-                  variant="ghost"
-                  onClick={onOpen}
-                  color="red.300"
-                  _hover={{ bg: "red.500", color: "white" }}
-                />
-              </Tooltip>
-            </>
-          )}
-        </VStack>
+                  <Tooltip label="Logout" placement="right" hasArrow>
+                    <IconButton
+                      aria-label="Logout"
+                      icon={<AiOutlineLogout size={22} />}
+                      variant="ghost"
+                      onClick={onOpen}
+                      color="red.300"
+                      _hover={{ bg: "red.500", color: "white" }}
+                    />
+                  </Tooltip>
+                </>
+              )}
+            </VStack>
 
-        {/* THEME TOGGLE */}
-        <Tooltip label="Toggle Theme" placement="right" hasArrow>
-          <IconButton
-            aria-label="Toggle Theme"
-            icon={colorMode === "light" ? <IoMoon size={20} /> : <LuSun size={20} />}
-            variant="ghost"
-            onClick={toggleColorMode}
-            _hover={{ bg: "gray.700" }}
-          />
-        </Tooltip>
-      </Box>
+            <Tooltip label="Toggle Theme" placement="right" hasArrow>
+              <IconButton
+                aria-label="Toggle Theme"
+                icon={
+                  colorMode === "light" ? (
+                    <IoMoon size={20} />
+                  ) : (
+                    <LuSun size={20} />
+                  )
+                }
+                variant="ghost"
+                onClick={toggleColorMode}
+              />
+            </Tooltip>
+          </MotionBox>
+        )}
+      </AnimatePresence>
 
-      {/* LOGOUT MODAL */}
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
         <ModalContent>
@@ -185,7 +197,7 @@ const Sidebar = () => {
               Cancel
             </Button>
 
-            <Button colorScheme="red" onClick={confirmLogout}>
+            <Button colorScheme="red" onClick={confirmLogout} isLoading={loading}>
               Logout
             </Button>
           </ModalFooter>

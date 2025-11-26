@@ -11,10 +11,8 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   useToast,
-  Grid,
   HStack,
   IconButton,
-  Divider,
   Flex,
   Button,
   Input,
@@ -24,12 +22,12 @@ import {
   CardFooter,
   Badge,
   useColorModeValue,
+  Divider,
 } from "@chakra-ui/react";
 import { FaTrash } from "react-icons/fa";
 import { useProductStore } from "../store/product";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
-
 
 const CalculatePricePage = () => {
   const { products, fetchProducts, updateProductStock } = useProductStore();
@@ -40,9 +38,9 @@ const CalculatePricePage = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-  // Color modes for UI consistency
-  const cardBg = useColorModeValue("white", "gray.900");
+  const cardBg = useColorModeValue("white", "gray.800");
   const borderCol = useColorModeValue("gray.200", "gray.700");
+  const pageBg = useColorModeValue("gray.50", "gray.900");
 
   useEffect(() => {
     fetchProducts();
@@ -157,171 +155,197 @@ const CalculatePricePage = () => {
   };
 
   return (
-    <Container maxW="container.md" py={10}>
-      <VStack spacing={8}>
-        <Text
-          fontSize="3xl"
-          fontWeight="bold"
-          textAlign="center"
-          bgGradient="linear(to-r, teal.400, blue.500, purple.600)"
-          bgClip="text"
-        >
-          Product Price Calculator
-        </Text>
+    <Box bg={pageBg} minH="100vh">
+      <Container maxW="container.md" py={{ base: 10, md: 14 }}>
+        <VStack spacing={10}>
+          <Text
+            fontSize={{ base: "2xl", md: "3xl" }}
+            fontWeight="extrabold"
+            textAlign="center"
+            bgGradient="linear(to-r, teal.400, blue.500, purple.600)"
+            bgClip="text"
+            letterSpacing="tight"
+          >
+            Product Price Calculator
+          </Text>
 
-        {/* Selection Card */}
-        <Card
-          w="100%"
-          shadow="lg"
-          borderRadius="lg"
-          bg={cardBg}
-          borderWidth="1px"
-          borderColor={borderCol}
-        >
-          <CardHeader pb={0}>
-            <Text fontSize="lg" fontWeight="semibold">
-              Add Products
-            </Text>
-          </CardHeader>
-
-          <CardBody>
-            <VStack spacing={5}>
-              <Input
-                placeholder="Search product..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                focusBorderColor="blue.500"
-                size="lg"
-              />
-
-              <Select
-                placeholder="Select a Product"
-                value={selectedProduct}
-                onChange={(e) => setSelectedProduct(e.target.value)}
-                focusBorderColor="blue.500"
-                size="lg"
-              >
-                {filteredProducts.map((product) => (
-                  <option key={product._id} value={product._id}>
-                    {product.name} — ₱{product.price} (Stock: {product.stock})
-                  </option>
-                ))}
-              </Select>
-
-              <NumberInput
-                value={quantity}
-                onChange={(value) => setQuantity(parseInt(value) || 1)}
-                min={1}
-                size="lg"
-                focusBorderColor="blue.500"
-              >
-                <NumberInputField />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
-
-              <Button
-                w="full"
-                colorScheme="teal"
-                size="lg"
-                onClick={handleAddProduct}
-              >
-                Add Product
-              </Button>
-            </VStack>
-          </CardBody>
-        </Card>
-
-        {/* Selected Products */}
-        {selectedProducts.length > 0 && (
+          {/* Selection Card */}
           <Card
             w="100%"
-            shadow="lg"
-            borderRadius="lg"
+            borderRadius="2xl"
             bg={cardBg}
             borderWidth="1px"
             borderColor={borderCol}
+            boxShadow={useColorModeValue(
+              "0 10px 30px rgba(0, 0, 0, 0.05)",
+              "0 8px 24px rgba(0, 0, 0, 0.4)"
+            )}
+            _hover={{
+              transform: "translateY(-3px)",
+              boxShadow: useColorModeValue(
+                "0 16px 40px rgba(0, 0, 0, 0.1)",
+                "0 12px 36px rgba(0, 0, 0, 0.5)"
+              ),
+            }}
+            transition="all 0.3s ease"
           >
-            <CardHeader>
+            <CardHeader pb={0}>
               <Text fontSize="lg" fontWeight="semibold">
-                Selected Products
+                Add Products
               </Text>
             </CardHeader>
 
             <CardBody>
-              <VStack spacing={4} align="stretch">
-                {selectedProducts.map((item) => {
-                  const product = products.find((prod) => prod._id === item.productId);
+              <VStack spacing={5}>
+                <Input
+                  placeholder="Search product..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  focusBorderColor="blue.400"
+                  size="lg"
+                  borderRadius="xl"
+                  bg={useColorModeValue("gray.50", "gray.700")}
+                />
 
-                  return (
-                    <Box
-                      key={item.productId}
-                      p={4}
-                      borderWidth="1px"
-                      borderColor={borderCol}
-                      borderRadius="lg"
-                      shadow="sm"
-                      bg={cardBg}
-                    >
-                      <Flex justify="space-between" align="center">
-                        <Box>
-                          <Text fontWeight="medium">{product.name}</Text>
-                          <Text fontSize="sm" color="gray.600">
-                            ₱{product.price} × {item.quantity}
-                          </Text>
-                          <Badge mt={1} colorScheme="purple">
-                            Subtotal: ₱{(product.price * item.quantity).toFixed(2)}
-                          </Badge>
-                        </Box>
+                <Select
+                  placeholder="Select a Product"
+                  value={selectedProduct}
+                  onChange={(e) => setSelectedProduct(e.target.value)}
+                  focusBorderColor="blue.400"
+                  size="lg"
+                  borderRadius="xl"
+                >
+                  {filteredProducts.map((product) => (
+                    <option key={product._id} value={product._id}>
+                      {product.name} — ₱{product.price} (Stock: {product.stock})
+                    </option>
+                  ))}
+                </Select>
 
-                        <HStack>
-                          <Button size="sm" onClick={() => handleDecrement(item.productId)}>
-                            -
-                          </Button>
-                          <Button size="sm" onClick={() => handleIncrement(item.productId)}>
-                            +
-                          </Button>
-                          <IconButton
-                            icon={<FaTrash />}
-                            colorScheme="red"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveProduct(item.productId)}
-                          />
-                        </HStack>
-                      </Flex>
-                    </Box>
-                  );
-                })}
+                <NumberInput
+                  value={quantity}
+                  onChange={(value) => setQuantity(parseInt(value) || 1)}
+                  min={1}
+                  size="lg"
+                  focusBorderColor="blue.400"
+                >
+                  <NumberInputField borderRadius="xl" />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+
+                <Button
+                  w="full"
+                  colorScheme="blue"
+                  size="lg"
+                  borderRadius="full"
+                  onClick={handleAddProduct}
+                >
+                  Add Product
+                </Button>
               </VStack>
             </CardBody>
-
-            <CardFooter justify="space-between">
-              <Text fontSize="xl" fontWeight="bold">
-                Total: ₱{totalPrice.toFixed(2)}
-              </Text>
-              <Button
-                colorScheme="green"
-                size="lg"
-                onClick={handleSold}
-                disabled={selectedProducts.length === 0}
-              >
-                Mark as Sold
-              </Button>
-            </CardFooter>
           </Card>
-        )}
-      </VStack>
-      <VStack spacing={8}>
-        {/* page content here */}
-      </VStack>
 
-      <Footer />
-    </Container>
+          {/* Selected Products */}
+          {selectedProducts.length > 0 && (
+            <Card
+              w="100%"
+              borderRadius="2xl"
+              bg={cardBg}
+              borderWidth="1px"
+              borderColor={borderCol}
+              boxShadow={useColorModeValue(
+                "0 10px 30px rgba(0, 0, 0, 0.05)",
+                "0 8px 24px rgba(0, 0, 0, 0.4)"
+              )}
+              transition="all 0.3s ease"
+            >
+              <CardHeader>
+                <Text fontSize="lg" fontWeight="semibold">
+                  Selected Products
+                </Text>
+              </CardHeader>
 
-    
+              <CardBody>
+                <VStack spacing={4} align="stretch">
+                  {selectedProducts.map((item) => {
+                    const product = products.find((prod) => prod._id === item.productId);
+
+                    return (
+                      <Box
+                        key={item.productId}
+                        p={4}
+                        borderWidth="1px"
+                        borderColor={borderCol}
+                        borderRadius="xl"
+                        bg={useColorModeValue("gray.50", "gray.700")}
+                        _hover={{
+                          transform: "scale(1.01)",
+                          boxShadow: "md",
+                        }}
+                        transition="0.2s"
+                      >
+                        <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+                          <Box>
+                            <Text fontWeight="medium" fontSize="md">
+                              {product.name}
+                            </Text>
+                            <Text fontSize="sm" color="gray.500">
+                              ₱{product.price} × {item.quantity}
+                            </Text>
+                            <Badge mt={1} colorScheme="purple">
+                              Subtotal: ₱{(product.price * item.quantity).toFixed(2)}
+                            </Badge>
+                          </Box>
+
+                          <HStack>
+                            <Button size="sm" onClick={() => handleDecrement(item.productId)}>
+                              -
+                            </Button>
+                            <Button size="sm" onClick={() => handleIncrement(item.productId)}>
+                              +
+                            </Button>
+                            <IconButton
+                              icon={<FaTrash />}
+                              colorScheme="red"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveProduct(item.productId)}
+                            />
+                          </HStack>
+                        </Flex>
+                      </Box>
+                    );
+                  })}
+                </VStack>
+              </CardBody>
+
+              <Divider />
+
+              <CardFooter justify="space-between" flexWrap="wrap" gap={4}>
+                <Text fontSize="xl" fontWeight="bold">
+                  Total: ₱{totalPrice.toFixed(2)}
+                </Text>
+                <Button
+                  colorScheme="green"
+                  size="lg"
+                  borderRadius="full"
+                  onClick={handleSold}
+                  disabled={selectedProducts.length === 0}
+                >
+                  Mark as Sold
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
+        </VStack>
+
+        <Footer />
+      </Container>
+    </Box>
   );
 };
 

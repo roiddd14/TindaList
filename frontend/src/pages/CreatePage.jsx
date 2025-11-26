@@ -15,14 +15,14 @@ import {
   Tooltip,
   Fade,
   Divider,
+  Flex,
+  Icon,
 } from "@chakra-ui/react";
-
 import { useState } from "react";
 import { useProductStore } from "../store/product";
 import { Link, useNavigate } from "react-router-dom";
+import { InfoIcon } from "@chakra-ui/icons";
 import Footer from "../components/Footer";
-
-
 
 const CreatePage = () => {
   const [newProduct, setNewProduct] = useState({
@@ -130,96 +130,134 @@ const CreatePage = () => {
     },
   ];
 
-  const cardBg = useColorModeValue("white", "gray.900");
+  const cardBg = useColorModeValue("white", "gray.800");
   const borderCol = useColorModeValue("gray.200", "gray.700");
+  const pageBg = useColorModeValue("gray.50", "gray.900");
 
   return (
-    <Container maxW="container.md" py={10}>
-      <VStack spacing={8}>
-        <Heading
-          fontSize="3xl"
-          fontWeight="bold"
-          textAlign="center"
-          bgGradient="linear(to-r, teal.400, blue.500, purple.600)"
-          bgClip="text"
-        >
-          Create New Product
-        </Heading>
-
-        <Box
-          w="100%"
-          p={10}
-          borderRadius="2xl"
-          bg={cardBg}
-          borderWidth="1px"
-          borderColor={borderCol}
-          boxShadow="lg"
-        >
-          <VStack spacing={6}>
-            
-            {formFields.map(({ label, name, placeholder, type, tooltip }) => (
-              <FormControl key={name} isInvalid={errors[name]}>
-                <FormLabel fontWeight="medium">
-                  {label}{" "}
-                  <Tooltip label={tooltip} fontSize="sm">
-                    <Text as="span" cursor="help" color="blue.400">
-                      ⓘ
-                    </Text>
-                  </Tooltip>
-                </FormLabel>
-
-                <Input
-                  type={type}
-                  placeholder={placeholder}
-                  value={newProduct[name]}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, [name]: e.target.value })
-                  }
-                  size="lg"
-                  bg={cardBg}
-                  borderRadius="md"
-                  focusBorderColor={errors[name] ? "red.400" : "blue.400"}
-                  borderColor={errors[name] ? "red.400" : undefined}
-                />
-
-                {errors[name] && (
-                  <Fade in={errors[name]}>
-                    <FormErrorMessage>{label} is required.</FormErrorMessage>
-                  </Fade>
-                )}
-              </FormControl>
-            ))}
-
-            <Divider />
-
-            <Button
-              w="full"
-              size="lg"
-              colorScheme="blue"
-              borderRadius="full"
-              onClick={handleAddProduct}
+    <Box bg={pageBg} minH="100vh">
+      <Container maxW="container.md" py={{ base: 10, md: 14 }}>
+        <VStack spacing={10}>
+          {/* Page Header */}
+          <VStack spacing={2}>
+            <Heading
+              fontSize={{ base: "2xl", md: "3xl" }}
+              fontWeight="extrabold"
+              textAlign="center"
+              bgGradient="linear(to-r, teal.400, blue.500, purple.600)"
+              bgClip="text"
+              letterSpacing="tight"
             >
-              Add Product
-            </Button>
-
-            <HStack w="full">
-              <Link style={{ width: "100%" }} to="/">
-                <Button w="full" size="lg" variant="outline" borderRadius="full">
-                  Cancel
-                </Button>
-              </Link>
-            </HStack>
-
+              Create New Product
+            </Heading>
+            <Text color="gray.500" fontSize={{ base: "sm", md: "md" }} textAlign="center">
+              Fill out the details below to add your new product to inventory
+            </Text>
           </VStack>
-        </Box>
-      </VStack>
-      <VStack spacing={8}>
-                    {/* page content here */}
-                  </VStack>
-            
-                  <Footer />
-    </Container>
-    
+
+          {/* Form Container */}
+          <Box
+            w="100%"
+            p={{ base: 6, md: 10 }}
+            borderRadius="2xl"
+            bg={cardBg}
+            borderWidth="1px"
+            borderColor={borderCol}
+            boxShadow={useColorModeValue(
+              "0 10px 30px rgba(0, 0, 0, 0.05)",
+              "0 8px 24px rgba(0, 0, 0, 0.4)"
+            )}
+            transition="all 0.3s ease"
+            _hover={{
+              transform: "translateY(-3px)",
+              boxShadow: useColorModeValue(
+                "0 16px 40px rgba(0, 0, 0, 0.1)",
+                "0 12px 36px rgba(0, 0, 0, 0.5)"
+              ),
+            }}
+          >
+            <VStack spacing={6} align="stretch">
+              {formFields.map(({ label, name, placeholder, type, tooltip }) => (
+                <FormControl key={name} isInvalid={errors[name]}>
+                  <FormLabel fontWeight="medium" display="flex" alignItems="center">
+                    {label}
+                    <Tooltip label={tooltip} fontSize="sm" hasArrow>
+                      <Box as="span" ml={2} color="blue.400" cursor="help">
+                        <Icon as={InfoIcon} w={4} h={4} />
+                      </Box>
+                    </Tooltip>
+                  </FormLabel>
+
+                  <Input
+                    type={type}
+                    placeholder={placeholder}
+                    value={newProduct[name]}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, [name]: e.target.value })
+                    }
+                    size="lg"
+                    bg={useColorModeValue("gray.50", "gray.700")}
+                    borderRadius="xl"
+                    borderColor={errors[name] ? "red.400" : borderCol}
+                    _focus={{
+                      borderColor: errors[name] ? "red.400" : "blue.400",
+                      boxShadow: `0 0 0 1px ${
+                        errors[name]
+                          ? "var(--chakra-colors-red-400)"
+                          : "var(--chakra-colors-blue-400)"
+                      }`,
+                    }}
+                  />
+
+                  {errors[name] && (
+                    <Fade in={errors[name]}>
+                      <FormErrorMessage>{label} is required.</FormErrorMessage>
+                    </Fade>
+                  )}
+                </FormControl>
+              ))}
+
+              <Divider />
+
+              {/* Action Buttons */}
+              <Flex
+                direction={{ base: "column", sm: "row" }}
+                gap={3}
+                w="full"
+                justify="space-between"
+              >
+                <Button
+                  w="full"
+                  size="lg"
+                  colorScheme="blue"
+                  borderRadius="full"
+                  onClick={handleAddProduct}
+                  fontWeight="semibold"
+                  letterSpacing="wide"
+                >
+                  Add Product
+                </Button>
+
+                <Link style={{ width: "100%" }} to="/">
+                  <Button
+                    w="full"
+                    size="lg"
+                    variant="outline"
+                    borderRadius="full"
+                    fontWeight="medium"
+                    _hover={{ bg: useColorModeValue("gray.100", "gray.700") }}
+                  >
+                    Cancel
+                  </Button>
+                </Link>
+              </Flex>
+            </VStack>
+          </Box>
+        </VStack>
+
+        <Footer />
+      </Container>
+    </Box>
   );
 };
 
