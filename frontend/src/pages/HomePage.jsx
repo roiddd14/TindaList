@@ -245,7 +245,7 @@ const HomePage = () => {
           )}
 
           {/* PAGINATION */}
-          {totalPages > 1 && (
+          (
             <>
               <Divider />
               <Flex justify="center" gap={3} flexWrap="wrap" mt={4}>
@@ -275,7 +275,7 @@ const HomePage = () => {
                 ))}
               </Flex>
             </>
-          )}
+          )
         </VStack>
       </Container>
 

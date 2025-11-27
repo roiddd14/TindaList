@@ -32,7 +32,10 @@ const LOW_STOCK_THRESHOLD = 5;
 
 const ProductCard = ({ product }) => {
   const [updatedProduct, setUpdatedProduct] = useState(product);
-  const [soldQuantity, setSoldQuantity] = useState(1);
+  const [soldQuantity, setSoldQuantity] = useState("");
+  const [loading, setLoading] = useState(false); // ✅ loading state
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [soldLoading, setSoldLoading] = useState(false); // ✅ ADDED delete loading
 
   const { deleteProduct, updateProduct } = useProductStore();
   const toast = useToast();
@@ -62,6 +65,8 @@ const ProductCard = ({ product }) => {
 
   // --- ACTION HANDLERS ---
   const handleDelete = async () => {
+    setDeleteLoading(true); // ✅ start delete loading
+
     const { success, message } = await deleteProduct(product._id);
 
     toast({
@@ -72,10 +77,14 @@ const ProductCard = ({ product }) => {
       isClosable: true,
     });
 
+    setDeleteLoading(false); // ✅ stop delete loading
     deleteModal.onClose();
   };
 
+  // ✅ NOW WITH LOADING STATE
   const handleUpdate = async () => {
+    setLoading(true);
+
     const { success, message } = await updateProduct(product._id, updatedProduct);
 
     toast({
@@ -86,10 +95,13 @@ const ProductCard = ({ product }) => {
       isClosable: true,
     });
 
+    setLoading(false);
     editModal.onClose();
   };
 
   const handleSold = async () => {
+      setSoldLoading(true);
+
     const newStock = updatedProduct.stock - soldQuantity;
 
     if (newStock < 0) {
@@ -100,10 +112,15 @@ const ProductCard = ({ product }) => {
         duration: 2500,
         isClosable: true,
       });
+
+      setSoldLoading(false);
       return;
     }
 
-    const { success } = await updateProduct(product._id, { ...updatedProduct, stock: newStock });
+    const { success } = await updateProduct(product._id, {
+      ...updatedProduct,
+      stock: newStock,
+    });
 
     if (success) {
       setUpdatedProduct((prev) => ({ ...prev, stock: newStock }));
@@ -116,6 +133,7 @@ const ProductCard = ({ product }) => {
       });
       soldModal.onClose();
     }
+    setSoldLoading(false);
   };
 
   return (
@@ -142,7 +160,6 @@ const ProductCard = ({ product }) => {
           objectFit="cover"
         />
 
-        {/* CATEGORY BADGE */}
         <Badge
           position="absolute"
           top={3}
@@ -156,7 +173,6 @@ const ProductCard = ({ product }) => {
           {product.category}
         </Badge>
 
-        {/* LOW STOCK BADGE */}
         {updatedProduct.stock <= LOW_STOCK_THRESHOLD && (
           <Badge
             position="absolute"
@@ -175,12 +191,7 @@ const ProductCard = ({ product }) => {
 
       {/* PRODUCT INFO */}
       <VStack align="start" spacing={2} p={5} flex="1">
-        <Heading
-          size="md"
-          noOfLines={2}
-          color={textColor}
-          fontWeight="bold"
-        >
+        <Heading size="md" noOfLines={2} color={textColor} fontWeight="bold">
           {product.name}
         </Heading>
 
@@ -244,7 +255,11 @@ const ProductCard = ({ product }) => {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="green" onClick={handleSold}>
+            <Button colorScheme="green"
+            onClick={handleSold} 
+            isLoading={soldLoading}
+            loadingText="Processing..."
+            >
               Confirm
             </Button>
           </ModalFooter>
@@ -260,15 +275,16 @@ const ProductCard = ({ product }) => {
 
           <ModalBody>
             <VStack spacing={4} w="100%">
-              
               <FormControl>
                 <FormLabel>Product Name</FormLabel>
                 <Input
                   value={updatedProduct.name}
                   onChange={(e) =>
-                    setUpdatedProduct({ ...updatedProduct, name: e.target.value })
+                    setUpdatedProduct({
+                      ...updatedProduct,
+                      name: e.target.value,
+                    })
                   }
-                  placeholder="Enter product name"
                 />
               </FormControl>
 
@@ -278,9 +294,11 @@ const ProductCard = ({ product }) => {
                   type="number"
                   value={updatedProduct.price}
                   onChange={(e) =>
-                    setUpdatedProduct({ ...updatedProduct, price: e.target.value })
+                    setUpdatedProduct({
+                      ...updatedProduct,
+                      price: e.target.value,
+                    })
                   }
-                  placeholder="Enter price"
                 />
               </FormControl>
 
@@ -289,9 +307,11 @@ const ProductCard = ({ product }) => {
                 <Input
                   value={updatedProduct.image}
                   onChange={(e) =>
-                    setUpdatedProduct({ ...updatedProduct, image: e.target.value })
+                    setUpdatedProduct({
+                      ...updatedProduct,
+                      image: e.target.value,
+                    })
                   }
-                  placeholder="Enter image URL"
                 />
               </FormControl>
 
@@ -300,9 +320,11 @@ const ProductCard = ({ product }) => {
                 <Input
                   value={updatedProduct.category}
                   onChange={(e) =>
-                    setUpdatedProduct({ ...updatedProduct, category: e.target.value })
+                    setUpdatedProduct({
+                      ...updatedProduct,
+                      category: e.target.value,
+                    })
                   }
-                  placeholder="Enter category"
                 />
               </FormControl>
 
@@ -312,23 +334,28 @@ const ProductCard = ({ product }) => {
                   type="number"
                   value={updatedProduct.stock}
                   onChange={(e) =>
-                    setUpdatedProduct({ ...updatedProduct, stock: e.target.value })
+                    setUpdatedProduct({
+                      ...updatedProduct,
+                      stock: e.target.value,
+                    })
                   }
-                  placeholder="Enter stock amount"
                 />
               </FormControl>
-
             </VStack>
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="blue" onClick={handleUpdate}>
+            <Button
+              colorScheme="blue"
+              onClick={handleUpdate}
+              isLoading={loading}
+              loadingText="Saving..."
+            >
               Save Changes
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-
 
       {/* --- DELETE CONFIRMATION MODAL --- */}
       <Modal isOpen={deleteModal.isOpen} onClose={deleteModal.onClose}>
@@ -345,7 +372,12 @@ const ProductCard = ({ product }) => {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="red" onClick={handleDelete}>
+            <Button 
+              colorScheme="red" 
+              onClick={handleDelete}
+              isLoading={deleteLoading}
+              loadingText="Deleting..."
+            >
               Delete
             </Button>
           </ModalFooter>

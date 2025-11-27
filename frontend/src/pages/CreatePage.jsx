@@ -41,6 +41,8 @@ const CreatePage = () => {
     category: false,
   });
 
+  const [loading, setLoading] = useState(false); // ✅ LOADING ADDED
+
   const toast = useToast();
   const navigate = useNavigate();
   const { createProduct } = useProductStore();
@@ -69,6 +71,8 @@ const CreatePage = () => {
       return;
     }
 
+    setLoading(true); // ✅ START LOADING
+
     const { success, message } = await createProduct(newProduct);
 
     if (!success) {
@@ -89,6 +93,7 @@ const CreatePage = () => {
       navigate("/");
     }
 
+    setLoading(false); // ✅ STOP LOADING
     setNewProduct({ name: "", price: "", image: "", stock: "", category: "" });
   };
 
@@ -124,7 +129,7 @@ const CreatePage = () => {
     {
       label: "Category",
       name: "category",
-      placeholder: "Enter category (ex: Shoes, Electronics)",
+      placeholder: "Enter category (ex: Coffee, Drinks)",
       type: "text",
       tooltip: "Categorize your product for easier filtering.",
     },
@@ -234,6 +239,8 @@ const CreatePage = () => {
                   onClick={handleAddProduct}
                   fontWeight="semibold"
                   letterSpacing="wide"
+                  isLoading={loading}         // ✅ SHOW SPINNER
+                  loadingText="Adding..."     // ✅ CUSTOM TEXT
                 >
                   Add Product
                 </Button>

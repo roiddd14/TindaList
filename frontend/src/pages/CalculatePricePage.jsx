@@ -224,8 +224,8 @@ const CalculatePricePage = () => {
 
                 <NumberInput
                   value={quantity}
-                  onChange={(value) => setQuantity(parseInt(value) || 1)}
-                  min={1}
+                  onChange={(value) => setQuantity(parseInt(value) || 0)}
+                  min={0}
                   size="lg"
                   focusBorderColor="blue.400"
                 >
